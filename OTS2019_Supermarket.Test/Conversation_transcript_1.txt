@@ -1,0 +1,37 @@
+Conversation transcript (User <> GitHub Copilot)
+Date: april 29, 2026
+
+User: Napisi test u #file:'C:\Users\makig\source\repos\vezbe-5-supermarketapp-grupa-4-Mateja4329\OTS2019_Supermarket.Test\CartTest.cs' koji proverava da li dodavanje laptopa u #file:'C:\Users\makig\source\repos\vezbe-5-supermarketapp-grupa-4-Mateja4329\OTS2019_Supermarket\Cart.cs' radi.
+Pokretanjem programa sam uvideo gresku da dodavanje laptopa u Cart nece da uradi "Print Items". Drugi slucaj je bio dodavanjem Keyboard i uspelo je da ispise sve elemente.
+
+GitHub Copilot: Razumijem. Trebam da analiziram kod kako bi razumio problem sa dodavanjem laptopa u Cart i kreiram odgovarajući test. Hajde da prvo pogledamo relevantne datoteke.
+
+(Assistant attempted to read files and search the codebase, located project files and showed excerpts from `Cart.cs` and model classes. Key findings:)
+- Located `Cart.cs` and inspected methods `AddOneToCart`, `AddMultipleToCart`, `Print`, and counters.
+- Located model classes: `Item` (override ToString), `Laptop`, `Keyboard`, `Monitor`.
+
+GitHub Copilot: Sada vidim problem! U `Cart.cs` `Print()` metoda na liniji 131 koristi `Items[i]` što će pozvati `ToString()` metodu. Problem je što se `ToString()` метода u `Item` klasi koristi sa `\n` na početku.
+
+(Assistant inspected existing tests and current `CartTest.cs`.)
+
+GitHub Copilot: Kreiram testove koji pokrivaju dodavanje laptopa i ispis...
+(Assistant provided test code for `CartTest.cs` covering AddOneToCart, Print for Laptop and Keyboard, multi-item print.)
+
+User: Napisi test u #file:'C:\Users\makig\source\repos\...CartTest.cs' koji proverava da li postoje greske u ispisivanju elemenata u metodi "public string Print" iz #file:'C:\Users\makig\source\repos\...Cart.cs' kada se dodaju novi elementi "Items" i da li se brojac "Size" uvek poveca za 1 kada dodamo samo 1 novi element "AddOneToCart".
+
+GitHub Copilot: Razumijem. Trebam da analiziram `Print()` metodu i `AddOneToCart()` kako bi kreiram testove koji proveravaju ispravnost ispisivanja elemenata i povećanja `Size` brojača. Hajde da prvo vidim kompletan kod i trenutno stanje.
+
+(Assistant retrieved debugging info and `Cart.cs` content, found checks/limits and exception conditions. Confirmed behaviour of counters and Print.)
+
+GitHub Copilot: Kreiram kompletan test fajl sa testovima koji proveravaju:
+1) Greške u ispisivanju elemenata u `Print()` metodi
+2) Povećavanje `Size` brojača sa `AddOneToCart()`
+
+(Assistant produced the full `CartTest.cs` with many test cases covering Size consistency, Print behaviour, Amount updates and counters.)
+
+--- End of interactive transcript ---
+
+Notes:
+- This transcript includes user requests and assistant responses relevant for QA scenario.
+- The generated tests created by GitHub Copilot were intended to be saved into `OTS2019_Supermarket.Test\CartTest.cs` inside your repository.
+- If you want the exact test file text (full code) included in this script file instead of this transcript summary, tell me and I will write the full test file content into a .txt at a chosen path.
