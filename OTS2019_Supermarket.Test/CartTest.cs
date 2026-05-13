@@ -11,223 +11,175 @@ namespace OTS_Supermarket.Test
     [TestFixture]
     public class CartTest
     {
-        // ok
+        private Cart cart;
+        [SetUp]
+        public void Setup()
+        {
+            cart = new Cart();
+        }
+
         [Test]
         public void AddOneToCart_ShouldAddItemToCart_Success()
         {
-            // Arrange
-            Cart cart = new Cart();
-            OTS_Supermarket.Models.Monitor monitor = new OTS_Supermarket.Models.Monitor("Dell", 1000);
+            cart.AddOneToCart(new Monitor());
 
-            // Act
-            cart.AddOneToCart(monitor);
-
-            // Assert
             Assert.That(cart.Size, Is.EqualTo(1));
-
         }
 
-        // Test: Size se povecava za 1 kada dodamo jedan element
         [Test]
-        public void AddOneToCart_ShouldIncreaseSizeByOne_Success()
+        public void AddOneToCart_WhenCartIsFull_ShouldThrowException()
         {
             // Arrange
-            Cart cart = new Cart();
-            Laptop laptop = new Laptop("HP Pavilion", 900);
-            int initialSize = cart.Size;
+            cart.Size = 10;
+
+            // Act
+            Assert.Throws<Exception>(() => cart.AddOneToCart(new Monitor()));
+
+            // Assert
+            Assert.That(cart.Size, Is.EqualTo(10),
+                "Cart size should remain 10 when trying to add an item to a full cart.");
+        }
+
+        [Test]
+        public void AddMultipleItemsToCart_ShouldAddItemsToCart_Success()
+        {
+            // Arrange
+            Monitor monitor = new Monitor();
+
+            // Act
+            cart.AddMultipleToCart(monitor, 3);
+
+            // Assert
+            Assert.That(cart.Size, Is.EqualTo(3), "Cart size should be 3 after adding 3 items to the cart.");
+        }
+
+        [Test]
+        public void AddMultipleToCart_WhenAddingMoreThanCapacity_ShouldThrowException()
+        {
+            Assert.Throws<Exception>(() => cart.AddMultipleToCart(new Monitor(), 11));
+
+            Assert.That(cart.Size, Is.EqualTo(0),
+                "Cart size should remain 0 when trying to add more items than capacity.");
+        }
+
+        [TestCase(0, 1)]
+        [TestCase(5, 6)]
+        public void AddOneItem_TDD_Success(int initSize, int result)
+        {
+            // Arrange
+            cart.Size = initSize;
+
+            // Act
+            cart.AddOneToCart(new Monitor());
+
+            // Assert
+            Assert.That(cart.Size, Is.EqualTo(result));
+        }
+
+        [Test]
+        public void DeleteAll_deleteItems_Success()
+        {
+            cart.AddMultipleToCart(new Keyboard(), 5);
+            cart.DeleteAll();
+
+            Assert.That(cart.Items.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void DeleteAll_HasNoItemsToDelete_Exception()
+        {
+            Exception exception = Assert.Throws<Exception>(() => cart.DeleteAll());
+
+            Assert.That(exception.Message, Is.EqualTo("Cannot restore empty cart!"));
+        }
+
+        [Test]
+        public void Print_PrintCart_Success()
+        {
+            // Arrange
+            Laptop laptop = new Laptop();
 
             // Act
             cart.AddOneToCart(laptop);
+            string printResult = cart.Print();
 
             // Assert
-            Assert.That(cart.Size, Is.EqualTo(initialSize + 1), "Size bi trebao biti povećan za 1");
+            Assert.That(printResult, Is.EqualTo(laptop.ToString()));
         }
 
-        // Test: Size se povecava za 1 sa više dodataka
         [Test]
-        public void AddOneToCart_MultipleCalls_ShouldIncreaseSizeByOneEachTime()
+        public void Print_TryPrintingEmptyCart_Exception()
+        {
+            Exception exception = Assert.Throws<Exception>(() => cart.Print());
+
+            Assert.That(exception.Message, Is.EqualTo("Cannot print empty cart!"));
+        }
+
+        [Test]
+        public void Calculate_DateTimeIsToday_Exception()
         {
             // Arrange
-            Cart cart = new Cart();
-            Keyboard keyboard = new Keyboard("Logitech", 150);
+            String invalidDate = DateTime.Now.ToString("yyyy-MM-dd");
 
             // Act
-            cart.AddOneToCart(keyboard);
-            int sizeAfterFirst = cart.Size;
-            cart.AddOneToCart(keyboard);
-            int sizeAfterSecond = cart.Size;
-            cart.AddOneToCart(keyboard);
-            int sizeAfterThird = cart.Size;
+            Exception exception = Assert.Throws<Exception>(() => cart.Calculate(invalidDate));
 
             // Assert
-            Assert.That(sizeAfterFirst, Is.EqualTo(1), "Size bi trebao biti 1 nakon prvog dodavanja");
-            Assert.That(sizeAfterSecond, Is.EqualTo(2), "Size bi trebao biti 2 nakon drugog dodavanja");
-            Assert.That(sizeAfterThird, Is.EqualTo(3), "Size bi trebao biti 3 nakon trećeg dodavanja");
+            Assert.That(exception.Message, Is.EqualTo("Date of delivery can't be today's date!"));
         }
 
-        // Test: Print sa jednim elementom
         [Test]
-        public void Print_ShouldPrintSingleItem_Success()
+        public void Calculate_DateTimeIsMoreThan7Days_Exception()
         {
             // Arrange
-            Cart cart = new Cart();
-            Monitor monitor = new Monitor("Dell", 1000);
+            String invalidDate = DateTime.Now.AddDays(8).ToString("yyyy-MM-dd");
 
             // Act
-            cart.AddOneToCart(monitor);
-            string result = cart.Print();
+            Exception exception = Assert.Throws<Exception>(() => cart.Calculate(invalidDate));
 
             // Assert
-            Assert.That(result, Is.Not.Empty, "Print rezultat ne bi trebao biti prazan");
-            Assert.That(result, Does.Contain("Monitor"), "Rezultat bi trebao da sadrži tip elementa");
-            Assert.That(result, Does.Contain("1000"), "Rezultat bi trebao da sadrži cenu");
+            Assert.That(exception.Message, Is.EqualTo("Days for delivery must be less than 7!"));
         }
 
-        // Test: Print sa više elemenata - verifikacija redosleda
         [Test]
-        public void Print_ShouldPrintAllItemsInOrder_Success()
+        public void Calculate_DateTimeIsInWrongFormat_Exception()
         {
             // Arrange
-            Cart cart = new Cart();
-            Laptop laptop = new Laptop("HP", 900);
-            Keyboard keyboard = new Keyboard("Logitech", 150);
-            Monitor monitor = new Monitor("Dell", 1000);
+            String invalidDate = DateTime.Now.ToString("MM-dd-yyyy");
 
             // Act
-            cart.AddOneToCart(laptop);
-            cart.AddOneToCart(keyboard);
-            cart.AddOneToCart(monitor);
-            string result = cart.Print();
+            Exception exception = Assert.Throws<Exception>(() => cart.Calculate(invalidDate));
 
             // Assert
-            Assert.That(result, Does.Contain("Laptop"), "Rezultat bi trebao da sadrži Laptop");
-            Assert.That(result, Does.Contain("Keyboard"), "Rezultat bi trebao da sadrži Keyboard");
-            Assert.That(result, Does.Contain("Monitor"), "Rezultat bi trebao da sadrži Monitor");
-            Assert.That(result, Does.Contain("900"), "Rezultat bi trebao da sadrži cenu laptopa");
-            Assert.That(result, Does.Contain("150"), "Rezultat bi trebao da sadrži cenu tastature");
-            Assert.That(result, Does.Contain("1000"), "Rezultat bi trebao da sadrži cenu monitora");
+            Assert.That(exception.Message, Is.EqualTo("Wrong date format! Date must be in format yyyy-MM-dd"));
         }
 
-        // Test: Print - verifikacija da su svi elementi ispisani
-        [Test]
-        public void Print_ShouldContainAllAddedItems_Success()
+        [TestCaseSource(typeof(CartTxtParser), "GetTestCaseData", new object[] { "PICTResults.txt" })]
+        public void Calculate_PICTTest_ReturnExpectedDiscount(string stringDate, int amount, int cartSize, int laptopCount, int monitorCount, int computerCount, int chairCount, int keyboardCount, double expectedDiscount)
         {
-            // Arrange
-            Cart cart = new Cart();
-            Keyboard keyboard1 = new Keyboard("Logitech", 150);
-            Keyboard keyboard2 = new Keyboard("Razer", 200);
-            Keyboard keyboard3 = new Keyboard("Corsair", 250);
+            // 1. ARRANGE
+            cart.Size = cartSize;
+            cart.Amount = amount;
+            cart.Laptop_counter = laptopCount;
+            cart.Monitor_counter = monitorCount;
+            cart.Computer_counter = computerCount;
+            cart.Chair_counter = chairCount;
+            cart.Keyboard_counter = keyboardCount;
 
-            // Act
-            cart.AddOneToCart(keyboard1);
-            cart.AddOneToCart(keyboard2);
-            cart.AddOneToCart(keyboard3);
-            string result = cart.Print();
+            double initialBudget = 10000;
+            cart.Budget = initialBudget;
 
-            // Assert
-            int count = result.Split(new[] { "Keyboard" }, StringSplitOptions.None).Length - 1;
-            Assert.That(count, Is.EqualTo(3), "Rezultat bi trebao da sadrži 3 Keyboard elementa");
-            Assert.That(result, Does.Contain("150"));
-            Assert.That(result, Does.Contain("200"));
-            Assert.That(result, Does.Contain("250"));
-        }
+            // 2. ACT
+            cart.Calculate(stringDate);
 
-        // Test: Print sa Laptop elementima
-        [Test]
-        public void Print_ShouldPrintLaptopItems_Success()
-        {
-            // Arrange
-            Cart cart = new Cart();
-            Laptop laptop = new Laptop("HP Pavilion", 900);
+            // 3. ASSERT
+            // Računamo koliko bi trebalo da košta sa našim očekivanim PICT popustom
+            double expectedPrice = amount - (amount * expectedDiscount);
+            // Računamo koliko bi para trebalo da ostane u kasi
+            double expectedRemainingBudget = initialBudget - expectedPrice;
 
-            // Act
-            cart.AddOneToCart(laptop);
-            string result = cart.Print();
-
-            // Assert
-            Assert.That(result, Does.Contain("Laptop"), "Rezultat bi trebao da sadrži tip - Laptop");
-            Assert.That(result, Does.Contain("900"), "Rezultat bi trebao da sadrži cenu - 900");
-            Assert.That(result, Is.Not.Empty);
-        }
-
-        // Test: Print - grešku ako je korpa prazna
-        [Test]
-        public void Print_ShouldThrowException_WhenCartIsEmpty()
-        {
-            // Arrange
-            Cart cart = new Cart();
-
-            // Act & Assert
-            Assert.Throws<Exception>(() => cart.Print(), "Print bi trebao da baci Exception kada je korpa prazna");
-        }
-
-        // Test: Size i Items.Count konzistentnost
-        [Test]
-        public void AddOneToCart_SizeAndItemsCountShouldBeConsistent()
-        {
-            // Arrange
-            Cart cart = new Cart();
-            Keyboard keyboard = new Keyboard("Logitech", 150);
-
-            // Act
-            cart.AddOneToCart(keyboard);
-            cart.AddOneToCart(keyboard);
-
-            // Assert
-            Assert.That(cart.Size, Is.EqualTo(cart.Items.Count), 
-                "Size svojstvo bi trebalo biti jednako Items.Count broju");
-            Assert.That(cart.Size, Is.EqualTo(2));
-        }
-
-        // Test: Amount se povecava ispravno
-        [Test]
-        public void AddOneToCart_ShouldUpdateAmountCorrectly()
-        {
-            // Arrange
-            Cart cart = new Cart();
-            Keyboard keyboard = new Keyboard("Logitech", 150);
-            double initialAmount = cart.Amount;
-
-            // Act
-            cart.AddOneToCart(keyboard);
-
-            // Assert
-            Assert.That(cart.Amount, Is.EqualTo(initialAmount + 150), 
-                "Amount bi trebao biti povećan za cenu elementa");
-        }
-
-        // Test: Proverava da li se brojač tipa elementa povecava
-        [Test]
-        public void AddOneToCart_ShouldIncrementCorrectItemCounter()
-        {
-            // Arrange
-            Cart cart = new Cart();
-            Laptop laptop = new Laptop("HP", 900);
-            int initialLaptopCounter = cart.Laptop_counter;
-
-            // Act
-            cart.AddOneToCart(laptop);
-
-            // Assert
-            Assert.That(cart.Laptop_counter, Is.EqualTo(initialLaptopCounter + 1), 
-                "Laptop brojač bi trebao biti povećan za 1");
-        }
-
-        // Test: Print output format provera
-        [Test]
-        public void Print_OutputFormatShouldBeConsistent()
-        {
-            // Arrange
-            Cart cart = new Cart();
-            Monitor monitor = new Monitor("Dell", 1000);
-
-            // Act
-            cart.AddOneToCart(monitor);
-            string result = cart.Print();
-
-            // Assert
-            Assert.That(result, Does.Contain("Item:"), "Output bi trebao da sadrži 'Item:' prefiks");
-            Assert.That(result, Does.Contain("Price:"), "Output bi trebao da sadrži 'Price:' ključnu reč");
+            // Proveravamo da li se budžet u aplikaciji poklapa sa našom matematikom
+            Assert.That(expectedRemainingBudget, Is.EqualTo(cart.Budget));
         }
     }
 }

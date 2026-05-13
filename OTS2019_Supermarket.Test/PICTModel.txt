@@ -1,0 +1,34 @@
+Days: 2, 5
+IsWeekend: True, False
+Amount: 1100, 1400, 1600
+CartSize: 4, 7, 8, 9, 10
+LaptopCount: 0, 1, 3, 4, 5, 7
+MonitorCount: 0, 1, 3
+ComputerCount: 0, 1, 3, 4, 5
+ChairCount: 0, 1
+KeyboardCount: 0, 1
+Discount: 0.00, 0.05, 0.08, 0.10, 0.15, 0.18, 0.20
+
+# Less or equal to 3 days
+# 0.05 Discount
+IF [Days] = 2 AND (([CartSize] = 9 AND [LaptopCount] IN {3, 7} AND [ComputerCount] IN {1, 3})
+OR ([CartSize] = 7 AND [Amount] IN {1400, 1600})) THEN [Discount] = 0.05;
+
+# 0.08 Discount
+IF [Days] = 2 AND [CartSize] = 9 AND [LaptopCount] > 0 THEN [Discount] = 0.08;
+
+# 0.10 Discount
+IF [Days] = 2 AND [CartSize] = 9 AND [Amount] = 1600 AND 
+(([LaptopCount] = 3 OR [ComputerCount] = 3) AND [MonitorCount] = 3) THEN [Discount] = 0.10;
+
+# More than 3 days
+# 0.15 Discount
+IF [Days] = 5 AND ([CartSize] > 5 AND ([LaptopCount] IN {4, 5} OR [ComputerCount] IN {4, 5})) THEN [Discount] = 0.15;
+
+# 0.18 Discount
+IF [Days] = 5 AND ([CartSize] > 5 AND [Amount] > 1200 AND ([ChairCount] > 0 OR 
+([KeyboardCount] > 0 AND [MonitorCount] > 0))) THEN [Discount] = 0.18;
+
+# 0.20 Discount
+IF [Days] = 5 AND [CartSize] > 8 AND [Amount] > 1500 AND 
+(([LaptopCount] > 2 OR [ComputerCount] > 2) AND [MonitorCount] > 2) THEN [Discount] = 0.20;
